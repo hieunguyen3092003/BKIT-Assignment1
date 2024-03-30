@@ -16,17 +16,25 @@
 
 typedef enum DIRECTION
 {
+	STOP,
 	UP,
 	DOWN,
 	LEFT,
-	RIGHT,
-	STOP
+	RIGHT
 } E_DIRECTION;
+
+typedef enum OBJECT
+{
+	NONE,
+	PAC_DOT,
+	WALL,
+	CHERRY
+} MAZE_OBJECT;
 
 /* Struct --------------------------------------------------------------------*/
 typedef struct CELL
 {
-	uint8_t is_pac_dot;
+	MAZE_OBJECT object;
 } S_CELL;
 
 typedef struct MAZE
@@ -65,16 +73,17 @@ void ghost_moving_process(void);
 // Maze object
 S_MAZE maze;
 void pac_dot_draw(uint8_t i, uint8_t j, uint16_t color);
+void wall_draw(uint8_t i, uint8_t j, uint16_t color);
 
 // Game Engine object
 void game_draw(void);
 void game_handler(void);
 
 /* Declare Private Support Functions -----------------------------------------*/
-uint8_t is_button_up(void);
-uint8_t is_button_down(void);
-uint8_t is_button_left(void);
-uint8_t is_button_right(void);
+uint8_t isButtonUp(void);
+uint8_t isButtonDown(void);
+uint8_t isButtonLeft(void);
+uint8_t isButtonRight(void);
 
 /* Public Functions ----------------------------------------------------------*/
 /**
@@ -89,10 +98,9 @@ void game_init(void)
 {
 	lcd_clear(BACKGROUND_COLOR);
 	lcd_draw_rectangle(MAZE_TOP_BORDER, MAZE_LEFT_BORDER, MAZE_BOTTOM_BORDER, MAZE_RIGHT_BORDER, BLACK);
-	lcd_show_string(20, 230, "Extremely simple PAC-MAN", BLACK, BACKGROUND_COLOR, 16, 0);
-	lcd_show_string(20, 250, "Score: ", BLACK, BACKGROUND_COLOR, 16, 0);
-
-	lcd_show_int_num(80, 250, 0, 1, RED, BACKGROUND_COLOR, 16);
+	lcd_show_string(20, 250, "Extremely simple PAC-MAN", BLACK, BACKGROUND_COLOR, 16, 0);
+	lcd_show_string(20, 270, "Score: ", BLACK, BACKGROUND_COLOR, 16, 0);
+	lcd_show_int_num(80, 270, 0, 1, RED, BACKGROUND_COLOR, 16);
 
 	led_7seg_set_colon(0);
 	led_7seg_set_digit(0, 0, 0);
@@ -104,10 +112,33 @@ void game_init(void)
 	{
 		for (int j = 0; j < MAZE_COLUMN_N; j++)
 		{
-			maze.cells[i][j].is_pac_dot = 1;	// Assume all cells initially have a pac-dot
+			maze.cells[i][j].object = PAC_DOT;	// Assume all cells initially have a pac-dot
 			pac_dot_draw(i, j, PAC_DOTS_COLOR); // Draw pac-dot on the maze
 		}
 	}
+
+	for (int i = 0; i < MAZE_ROW_N; i++)
+		{
+			for (int j = 0; j < MAZE_COLUMN_N; j++)
+			{
+				if(i == 5 || i == 9)
+				{
+					if(j >= 4 && j <= MAZE_COLUMN_N - 4 && j != 7 && j != 8)
+					{
+						maze.cells[i][j].object = WALL;
+						wall_draw(i, j, WALL_COLOR);
+					}
+				}
+				if(i == 6 || i == 7 || i == 8)
+				{
+					if((j == 4 || j == MAZE_COLUMN_N - 4))
+					{
+						maze.cells[i][j].object = WALL;
+						wall_draw(i, j, WALL_COLOR);
+					}
+				}
+			}
+		}
 
 	pacman.i = PACMAN_STARTING_I;
 	pacman.j = PACMAN_STARTING_J;
@@ -115,7 +146,7 @@ void game_init(void)
 	pacman.j_pre = pacman.j;
 	pacman.direction = STOP;
 	pacman.score = 0;
-	maze.cells[pacman.i][pacman.j].is_pac_dot = 0; // reset maze cell at pacman position
+	maze.cells[pacman.i][pacman.j].object = NONE; // reset maze cell at pacman position
 	pacman_draw(pacman.i, pacman.j, PACMAN_COLOR);
 
 	ghost.i = GHOST_STARTING_I;
@@ -195,7 +226,7 @@ void game_draw(void)
 	if (ghost.i != ghost.i_pre || ghost.j != ghost.j_pre)
 	{
 		ghost_draw(ghost.i_pre, ghost.j_pre, BACKGROUND_COLOR);
-		if(maze.cells[ghost.i_pre][ghost.j_pre].is_pac_dot)
+		if(maze.cells[ghost.i_pre][ghost.j_pre].object)
 		{
 			pac_dot_draw(ghost.i_pre, ghost.j_pre, PAC_DOTS_COLOR);
 		}
@@ -213,7 +244,7 @@ uint8_t is_win_condition_met()
 }
 uint8_t has_pacman_eaten_dot()
 {
-	return maze.cells[pacman.i][pacman.j].is_pac_dot;
+	return maze.cells[pacman.i][pacman.j].object == PAC_DOT;
 }
 /**
  * handle game event
@@ -232,7 +263,7 @@ void game_handler(void)
 	}
 	if (has_pacman_eaten_dot())
 	{
-		maze.cells[pacman.i][pacman.j].is_pac_dot = 0;
+		maze.cells[pacman.i][pacman.j].object = NONE;
 		pacman.score += POINTS_PER_DOT;
 
 		led_7seg_set_digit(pacman.score / 1000, 0, 0);
@@ -240,25 +271,25 @@ void game_handler(void)
 		led_7seg_set_digit(pacman.score / 10, 2, 0);
 		led_7seg_set_digit(pacman.score % 10, 3, 0);
 
-		lcd_show_int_num(80, 250, pacman.score, 2, RED, BACKGROUND_COLOR, 16);
+		lcd_show_int_num(80, 270, pacman.score, 2, RED, BACKGROUND_COLOR, 16);
 	}
 }
 
 void pacman_direction_process(void)
 {
-	if (is_button_up())
+	if (isButtonUp())
 	{
 		pacman.direction = UP;
 	}
-	else if (is_button_down())
+	else if (isButtonDown())
 	{
 		pacman.direction = DOWN;
 	}
-	else if (is_button_left())
+	else if (isButtonLeft())
 	{
 		pacman.direction = LEFT;
 	}
-	else if (is_button_right())
+	else if (isButtonRight())
 	{
 		pacman.direction = RIGHT;
 	}
@@ -266,30 +297,31 @@ void pacman_direction_process(void)
 
 void pacman_moving_process(void)
 {
-	if (pacman.direction == UP && pacman.i > 0)
+	if (pacman.direction == UP && pacman.i > 0 && maze.cells[pacman.i - 1][pacman.j].object != WALL)
 	{
 		pacman.i_pre = pacman.i;
 		pacman.j_pre = pacman.j;
 		pacman.i--;
 	}
-	else if (pacman.direction == DOWN && pacman.i < MAZE_ROW_N - 1)
+	else if (pacman.direction == DOWN && pacman.i < MAZE_ROW_N - 1 && maze.cells[pacman.i + 1][pacman.j].object != WALL)
 	{
 		pacman.i_pre = pacman.i;
 		pacman.j_pre = pacman.j;
 		pacman.i++;
 	}
-	else if (pacman.direction == LEFT && pacman.j > 0)
+	else if (pacman.direction == LEFT && pacman.j > 0 && maze.cells[pacman.i][pacman.j - 1].object != WALL)
 	{
 		pacman.i_pre = pacman.i;
 		pacman.j_pre = pacman.j;
 		pacman.j--;
 	}
-	else if (pacman.direction == RIGHT && pacman.j < MAZE_COLUMN_N - 1)
+	else if (pacman.direction == RIGHT && pacman.j < MAZE_COLUMN_N - 1 && maze.cells[pacman.i][pacman.j + 1].object != WALL)
 	{
 		pacman.i_pre = pacman.i;
 		pacman.j_pre = pacman.j;
 		pacman.j++;
 	}
+	else;
 }
 
 void ghost_direction_process(void)
@@ -317,25 +349,25 @@ void ghost_direction_process(void)
 
 void ghost_moving_process(void)
 {
-	if (ghost.direction == UP && ghost.i > 0)
+	if (ghost.direction == UP && ghost.i > 0 && maze.cells[ghost.i - 1][ghost.j].object != WALL)
 	{
 		ghost.i_pre = ghost.i;
 		ghost.j_pre = ghost.j;
 		ghost.i--;
 	}
-	else if (ghost.direction == DOWN && ghost.i < MAZE_ROW_N - 1)
+	else if (ghost.direction == DOWN && ghost.i < MAZE_ROW_N - 1 && maze.cells[ghost.i + 1][ghost.j].object != WALL)
 	{
 		ghost.i_pre = ghost.i;
 		ghost.j_pre = ghost.j;
 		ghost.i++;
 	}
-	else if (ghost.direction == LEFT && ghost.j > 0)
+	else if (ghost.direction == LEFT && ghost.j > 0 && maze.cells[ghost.i][ghost.j - 1].object != WALL)
 	{
 		ghost.i_pre = ghost.i;
 		ghost.j_pre = ghost.j;
 		ghost.j--;
 	}
-	else if (ghost.direction == RIGHT && ghost.j < MAZE_COLUMN_N - 1)
+	else if (ghost.direction == RIGHT && ghost.j < MAZE_COLUMN_N - 1 && maze.cells[ghost.i][ghost.j + 1].object != WALL)
 	{
 		ghost.i_pre = ghost.i;
 		ghost.j_pre = ghost.j;
@@ -347,20 +379,31 @@ void ghost_moving_process(void)
 
 void pac_dot_draw(uint8_t i, uint8_t j, uint16_t color)
 {
-	lcd_draw_circle((200 / MAZE_COLUMN_N) * j + 20 + 10, (200 / MAZE_ROW_N) * i + 20 + 10, color, 4, 1);
+	lcd_draw_circle(((MAZE_RIGHT_BORDER - MAZE_LEFT_BORDER) / MAZE_COLUMN_N) * j + ((MAZE_RIGHT_BORDER - MAZE_LEFT_BORDER) / MAZE_COLUMN_N) / 2,
+					((MAZE_BOTTOM_BORDER - MAZE_TOP_BORDER) / MAZE_ROW_N) * i + ((MAZE_BOTTOM_BORDER - MAZE_TOP_BORDER) / MAZE_ROW_N) / 2, color, 3, 1);
+}
+
+void wall_draw(uint8_t i, uint8_t j, uint16_t color)
+{
+	lcd_fill(((MAZE_RIGHT_BORDER - MAZE_LEFT_BORDER) / MAZE_COLUMN_N) * j,
+			((MAZE_RIGHT_BORDER - MAZE_LEFT_BORDER) / MAZE_COLUMN_N) * i,
+			((MAZE_RIGHT_BORDER - MAZE_LEFT_BORDER) / MAZE_COLUMN_N) * j + ((MAZE_RIGHT_BORDER - MAZE_LEFT_BORDER) / MAZE_COLUMN_N),
+			((MAZE_BOTTOM_BORDER - MAZE_TOP_BORDER) / MAZE_ROW_N) * i + ((MAZE_BOTTOM_BORDER - MAZE_TOP_BORDER) / MAZE_ROW_N), color);
 }
 
 void pacman_draw(uint8_t i, uint8_t j, uint16_t color)
 {
-	lcd_draw_circle((200 / MAZE_COLUMN_N) * j + 20 + 10, (200 / MAZE_ROW_N) * i + 20 + 10, color, 8, 1);
+	lcd_draw_circle(((MAZE_RIGHT_BORDER - MAZE_LEFT_BORDER) / MAZE_COLUMN_N) * j + ((MAZE_RIGHT_BORDER - MAZE_LEFT_BORDER) / MAZE_COLUMN_N) / 2,
+					((MAZE_BOTTOM_BORDER - MAZE_TOP_BORDER) / MAZE_ROW_N) * i + ((MAZE_BOTTOM_BORDER - MAZE_TOP_BORDER) / MAZE_ROW_N) / 2, color, 6, 1);
 }
 
 void ghost_draw(uint8_t i, uint8_t j, uint16_t color)
 {
-	lcd_draw_circle((200 / MAZE_COLUMN_N) * j + 20 + 10, (200 / MAZE_ROW_N) * i + 20 + 10, color, 8, 1);
+	lcd_draw_circle(((MAZE_RIGHT_BORDER - MAZE_LEFT_BORDER) / MAZE_COLUMN_N) * j + ((MAZE_RIGHT_BORDER - MAZE_LEFT_BORDER) / MAZE_COLUMN_N) / 2,
+					((MAZE_BOTTOM_BORDER - MAZE_TOP_BORDER) / MAZE_ROW_N) * i + ((MAZE_BOTTOM_BORDER - MAZE_TOP_BORDER) / MAZE_ROW_N) / 2, color, 6, 1);
 }
 
-uint8_t is_button_up(void)
+uint8_t isButtonUp(void)
 {
 	if (button_count[1] == 1)
 	{
@@ -369,7 +412,7 @@ uint8_t is_button_up(void)
 	return 0;
 }
 
-uint8_t is_button_down(void)
+uint8_t isButtonDown(void)
 {
 	if (button_count[9] == 1)
 	{
@@ -378,7 +421,7 @@ uint8_t is_button_down(void)
 	return 0;
 }
 
-uint8_t is_button_left(void)
+uint8_t isButtonLeft(void)
 {
 	if (button_count[4] == 1)
 	{
@@ -387,7 +430,7 @@ uint8_t is_button_left(void)
 	return 0;
 }
 
-uint8_t is_button_right(void)
+uint8_t isButtonRight(void)
 {
 	if (button_count[6] == 1)
 	{
