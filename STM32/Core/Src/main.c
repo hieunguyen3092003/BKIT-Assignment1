@@ -61,7 +61,6 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 void init_system(void);
-void debugProgram(void);
 
 /* USER CODE END PFP */
 

@@ -131,7 +131,8 @@ void lcd_draw_point(uint16_t x, uint16_t y, uint16_t color) {
  * @retval None
  */
 void lcd_draw_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,
-		uint16_t color) {
+		uint16_t color)
+{
 	uint16_t t;
 	int xerr = 0, yerr = 0, delta_x, delta_y, distance;
 	int incx, incy, uRow, uCol;
