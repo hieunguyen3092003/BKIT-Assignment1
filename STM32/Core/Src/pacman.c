@@ -179,37 +179,37 @@ void game_init(void)
 	ghost_draw(ghost_0.i, ghost_0.j, GHOST_0_COLOR);
 
 	if(maze.cells[GHOST_1_STARTING_I][GHOST_1_STARTING_J] == WALL)
-		{
-			maze.cells[GHOST_1_STARTING_I][GHOST_1_STARTING_J] = NONE;
-		}
-		ghost_1.i = GHOST_1_STARTING_I;
-		ghost_1.j = GHOST_1_STARTING_J;
-		ghost_1.i_pre = ghost_1.i;
-		ghost_1.j_pre = ghost_1.j;
-		ghost_1.direction = STOP;
-		ghost_draw(ghost_1.i, ghost_1.j, GHOST_1_COLOR);
+	{
+		maze.cells[GHOST_1_STARTING_I][GHOST_1_STARTING_J] = NONE;
+	}
+	ghost_1.i = GHOST_1_STARTING_I;
+	ghost_1.j = GHOST_1_STARTING_J;
+	ghost_1.i_pre = ghost_1.i;
+	ghost_1.j_pre = ghost_1.j;
+	ghost_1.direction = STOP;
+	ghost_draw(ghost_1.i, ghost_1.j, GHOST_1_COLOR);
 
 	if(maze.cells[GHOST_2_STARTING_I][GHOST_2_STARTING_J] == WALL)
-		{
-			maze.cells[GHOST_2_STARTING_I][GHOST_2_STARTING_J] = NONE;
-		}
-		ghost_2.i = GHOST_2_STARTING_I;
-		ghost_2.j = GHOST_2_STARTING_J;
-		ghost_2.i_pre = ghost_2.i;
-		ghost_2.j_pre = ghost_2.j;
-		ghost_2.direction = STOP;
-		ghost_draw(ghost_2.i, ghost_2.j, GHOST_2_COLOR);
+	{
+		maze.cells[GHOST_2_STARTING_I][GHOST_2_STARTING_J] = NONE;
+	}
+	ghost_2.i = GHOST_2_STARTING_I;
+	ghost_2.j = GHOST_2_STARTING_J;
+	ghost_2.i_pre = ghost_2.i;
+	ghost_2.j_pre = ghost_2.j;
+	ghost_2.direction = STOP;
+	ghost_draw(ghost_2.i, ghost_2.j, GHOST_2_COLOR);
 
 	if(maze.cells[GHOST_3_STARTING_I][GHOST_3_STARTING_J] == WALL)
-		{
-			maze.cells[GHOST_3_STARTING_I][GHOST_3_STARTING_J] = NONE;
-		}
-		ghost_3.i = GHOST_3_STARTING_I;
-		ghost_3.j = GHOST_3_STARTING_J;
-		ghost_3.i_pre = ghost_3.i;
-		ghost_3.j_pre = ghost_3.j;
-		ghost_3.direction = STOP;
-		ghost_draw(ghost_3.i, ghost_3.j, GHOST_3_COLOR);
+	{
+		maze.cells[GHOST_3_STARTING_I][GHOST_3_STARTING_J] = NONE;
+	}
+	ghost_3.i = GHOST_3_STARTING_I;
+	ghost_3.j = GHOST_3_STARTING_J;
+	ghost_3.i_pre = ghost_3.i;
+	ghost_3.j_pre = ghost_3.j;
+	ghost_3.direction = STOP;
+	ghost_draw(ghost_3.i, ghost_3.j, GHOST_3_COLOR);
 }
 
 /**
@@ -239,6 +239,7 @@ void game_process(void)
 			ghost_moving_process();
 
 			game_draw();
+
 			game_handler();
 		}
 
@@ -330,7 +331,11 @@ uint8_t is_loss_condition_met()
 	return ((ghost_0.i == pacman.i && ghost_0.j == pacman.j) ||
 			(ghost_1.i == pacman.i && ghost_1.j == pacman.j) ||
 			(ghost_2.i == pacman.i && ghost_2.j == pacman.j) ||
-			(ghost_3.i == pacman.i && ghost_3.j == pacman.j));
+			(ghost_3.i == pacman.i && ghost_3.j == pacman.j) ||
+			(ghost_0.i_pre == pacman.i_pre && ghost_0.j_pre == pacman.j_pre) ||
+			(ghost_1.i_pre == pacman.i_pre && ghost_1.j_pre == pacman.j_pre) ||
+			(ghost_2.i_pre == pacman.i_pre && ghost_2.j_pre == pacman.j_pre) ||
+			(ghost_3.i_pre == pacman.i_pre && ghost_3.j_pre == pacman.j_pre)   );
 }
 uint8_t is_win_condition_met()
 {
